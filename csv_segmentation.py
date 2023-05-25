@@ -4,7 +4,7 @@ import os.path
 
 # target = 20
 csv_name = input("请输入文件名")
-target = int(input("请输入截取大小"))
+target = int(input("请输入每个文件分割条数"))
 basename, extension = os.path.splitext(os.path.basename(csv_name))
 init = os.path.dirname(csv_name) + "/" + basename + "/"
 
@@ -43,3 +43,4 @@ def read_csv(filename):
 
 
 read_csv(csv_name)
+print("success")
