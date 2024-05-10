@@ -2,42 +2,34 @@ import os
 import time
 import mmap
 
-from clickhouse_driver import Client
-from pygrok import Grok
+import pymongo
 
 from 本地IP数据库 import IPCz
 
-clickhouse_ip = '192.168.232.168'
-client = Client(host=clickhouse_ip, port=9000, user='default', password='')
+client = pymongo.MongoClient("mongodb://admin:123456@192.168.232.143:27017/")
 
-# 创建一个表
-client.execute("DROP TABLE IF EXISTS falcon_table")
-client.execute("""
-CREATE TABLE IF NOT EXISTS falcon_table
-(
-    src String,
-    count Int32,
-    timestamp DateTime,
-    address String,
-    status Int32
-) ENGINE = MergeTree
-PARTITION BY toYYYYMM(timestamp) 
-ORDER BY (src, timestamp)
-SETTINGS index_granularity = 8192;""")
+# 选择或创建数据库
+db = client["log"]
+collection = db["vpn"]
 
 
 def match_nginx_log_bt(log):
-    pattern = "%{GREEDYDATA:timestamp} %{GREEDYDATA:source_file} src\:%{GREEDYDATA:src} dst\:%{GREEDYDATA:dst} %{GREEDYDATA:source_file}"
-    grok = Grok(pattern)
-    match = grok.match(log)
-    if match is not None:
-        match['timestamp'] = match['timestamp'].split(" ")[0]
-        match['src'] = match['src'].split(":")[0]
-        match['dst'] = match['dst'].split(":")[0]
-        return match
-    else:
-        print("error no match: " + log)
-        return None
+    try:
+        if "src" not in log:
+            return None
+        log_map = log.split(" ")
+        item = {}
+        item['timestamp'] = log_map[0]
+        for log in log_map:
+            if "src:" in log:
+                item["src"] = log.split(":")[1]
+            if "pro:" in log:
+                item["pro"] = log.split(":")[1]
+            if "dst:" in log:
+                item["dst"] = log.split(":")[1]
+        return item
+    except Exception as e:
+        print(f'line{e.__traceback__.tb_lineno} :::' + str(log))
 
 
 def read_nginx_log(filename):
@@ -46,33 +38,24 @@ def read_nginx_log(filename):
         try:
             # 创建内存映射对象
             mm = mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ)
+            data_list = []
+            line_num = 0
             line = mm.readline()
+            line_num += 1
             while line:
                 log_line = line.decode().strip()
                 source_data = match_nginx_log_bt(log_line)
-                src = source_data['src']
-                timestamp = source_data['timestamp']
-                address = ipcz.get_ip_address(src)
-                # 条件
                 if source_data is None:
                     line = mm.readline()
                     continue
-                # if source_data["errno"] == '404':
-                #     line = mm.readline()
-                #     continue
-                exits_query = f'select 1 from falcon_table where src= \'{src}\''
-                exists = client.execute(exits_query)
-                if exists:
-                    # 如果存在，则执行计数加一的操作\
-                    update_query = f'ALTER TABLE falcon_table UPDATE count = count + 1 WHERE src = \'{src}\''
-                    print(update_query)
-                    client.execute(update_query)
-                else:
-                    # 如果不存在，则插入新的记录
-                    insert_query = f'INSERT INTO falcon_table (src, count, timestamp, address) VALUES (\'{src}\', 1, \'{timestamp}\', \'{address}\')'
-                    client.execute(insert_query)
-                time.sleep(1)
+                address = ipcz.get_ip_address(source_data['src'])
+                source_data['address'] = address
+                data_list.append(source_data)
+                if line_num % 1000 == 0:
+                    collection.insert_many(data_list)
+                    data_list = []
                 line = mm.readline()
+            collection.insert_many(data_list)
             mm.close()
 
 
@@ -81,7 +64,7 @@ def read_nginx_log(filename):
     # 关闭内存映射对象
 
 
-directory = "./tmp_file/"
+directory = "./tmp1/"
 
 
 def load_file():
