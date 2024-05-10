@@ -30,13 +30,13 @@ class IPCz:
         return ((ip >> 24) & 0xff) | ((ip & 0xff) << 24) | ((ip >> 8) & 0xff00) | ((ip & 0xff00) << 8)
 
     # 数据文件路径
-    __database_file = './tmp/ip.dat'
     __cur_start_ip = None
     __cur_end_ip_offset = None
     __cur_end_ip = None
 
-    def __init__(self):
-        self.__f_db = open(self.__database_file, "rb")
+    def __init__(self, filename):
+
+        self.__f_db = open(filename, "rb")
         # 文件头记录 4 字节 第一条索引偏离 和 4 字节 最后一条索引偏离
         bs = self.__f_db.read(8)
         (self.__first_index, self.__last_index) = struct.unpack('II', bs)
@@ -199,7 +199,7 @@ class IPCz:
 
 
 if __name__ == "__main__":
-    ipcz = IPCz()
+    ipcz = IPCz('./tmp/ip.dat')
     ipcz.load_data()
     print(IPCz().get_version())
     print(IPCz().get_ip_range('127.0.0.1'))
