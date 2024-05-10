@@ -42,5 +42,9 @@ def read_csv(filename):
                 alist = []
 
 
-read_csv(csv_name)
-print("success")
+try:
+    read_csv(csv_name)
+except Exception as e:
+    print(e)
+finally:
+    input('please input any key to exit')
