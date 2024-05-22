@@ -7,7 +7,7 @@ import pytesseract
 import redis
 import numpy as np
 
-redis_client = redis.StrictRedis(host='192.168.1.251', port=6379, db=0)
+redis_client = redis.StrictRedis(host='192.168.232.128', port=6379, db=0)
 
 
 def png_format(b):
@@ -45,6 +45,7 @@ def redis_format():
 
 
 if __name__ == '__main__':
+    pytesseract.pytesseract.tesseract_cmd = r'D:\Tesseract-OCR\tesseract.exe'
     while True:
         redis_format()
         time.sleep(3600)

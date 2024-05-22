@@ -9,7 +9,7 @@ import pyautogui
 import redis
 
 # 连接到Redis服务器
-redis_client = redis.StrictRedis(host='192.168.1.251', port=6379, db=0, decode_responses=True)
+redis_client = redis.StrictRedis(host='192.168.232.128', port=6379, db=0, decode_responses=True)
 
 
 def capture():
@@ -44,7 +44,7 @@ def capture():
             pyautogui.screenshot("./tmp/shot.png", region=(int(x), int(y), int(w), int(h)))
             print("获取成功")
         except Exception as e:
-            print(f'not found {e}')
+            print(e)
     else:
         return False
     return True
