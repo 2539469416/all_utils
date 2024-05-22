@@ -6,9 +6,13 @@
 #       修改时间:
 #       copyright (c) 2016 - 2019 mail@xqitw.cn
 # ==================================================================
+import json
 import socket
+import time
 from os.path import abspath, dirname
 import struct
+
+import redis
 
 
 class IPCz:
@@ -140,6 +144,21 @@ class IPCz:
             address = "未找到该IP的地址"
         return address
 
+    def get_ip(self, datas, ip):
+        lens = len(datas)
+        if type(ip) == str:
+            ip = self.string_to_ip(ip)
+        L = 0
+        R = lens - 1
+        while L < R - 1:
+            M = int((L + R) / 2)
+            if (ip == datas[M] or (ip > datas[M] and ip < datas[M + 1]) or (ip < datas[M] and ip > datas[M - 1])):
+                return datas[M]
+            if ip > datas[M]:
+                L = M
+            elif ip < datas[M]:
+                R = M
+
     def get_ip_range(self, ip):
         """
         返回ip所在记录的IP段
@@ -181,6 +200,10 @@ class IPCz:
         return (b << 16) + a
 
     def load_data(self):
+        r = redis.Redis(host='192.168.232.168', port=6379, db=0)
+        print(f'all count is {self.__index_count}')
+        data_list = []
+        data_map = {}
         for index in range(0, self.__index_count):
             offset = self.__first_index + index * 7
             self.__f_db.seek(offset)
@@ -192,15 +215,22 @@ class IPCz:
             buf = self.__f_db.read(4)
             (self.__cur_end_ip,) = struct.unpack("I", buf)
             address = self.__get_addr(self.__cur_end_ip_offset)
-            startip = self.ip_to_string(self.__cur_start_ip)
-            endip = self.ip_to_string(self.__cur_end_ip)
-            print(startip, endip, address)
+            startip = self.__cur_start_ip
+            endip = self.__cur_end_ip
+            data_list.append(endip)
+            data_map[endip] = address
+            # r.zadd('ip_search', {address: endip})
+            print(endip, address)
+        print('写入中')
+        with open('./tmp/ip.json', 'w') as file:
+            json.dump({'list': data_list, 'map': data_map}, file)
+        print('写入完成')
         return address
 
 
 if __name__ == "__main__":
     ipcz = IPCz('./tmp/ip.dat')
     ipcz.load_data()
-    print(IPCz().get_version())
-    print(IPCz().get_ip_range('127.0.0.1'))
-    print(IPCz().get_ip_address('8.8.8.8'))
+    # print(IPCz().get_version())
+    # print(IPCz().get_ip_range('127.0.0.1'))
+    # print(IPCz().get_ip_address('8.8.8.8'))
