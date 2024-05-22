@@ -1,0 +1,20 @@
+# requirements.txt
+
+# base64 编码和解码库
+base64
+
+# JSON 序列化和反序列化库
+json
+
+# OpenCV 图像处理库
+opencv-python
+
+# 图像识别库
+pytesseract
+
+# Redis 客户端库
+redis
+
+# 数组和矩阵运算库
+numpy
+
