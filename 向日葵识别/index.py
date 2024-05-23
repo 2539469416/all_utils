@@ -9,7 +9,7 @@ import pyautogui
 import redis
 
 # 连接到Redis服务器
-redis_client = redis.StrictRedis(host='192.168.232.128', port=6379, db=0, decode_responses=True)
+redis_client = redis.StrictRedis(host='192.168.1.251', port=6379, db=0, decode_responses=True)
 
 
 def capture():
@@ -18,7 +18,7 @@ def capture():
     for file_name in file_list:
         if os.path.exists(file_name):
             subprocess.Popen(file_name)
-            time.sleep(1)
+            time.sleep(3)
     # 获取所有记事本窗口
     windows = pyautogui.getWindowsWithTitle("向日葵远程控制")
     # 如果找到记事本窗口
@@ -32,6 +32,7 @@ def capture():
         bottom = window.bottom
         width = right - left
         height = bottom - top
+        go_remote(left, top, width, height)
         check_dlg(left, top, width, height)
         try:
             loc = pyautogui.locateCenterOnScreen("./tmp/target.png", region=(left, top, width, height))
@@ -39,12 +40,13 @@ def capture():
             pyautogui.moveTo(*loc, duration=0.5)
             pyautogui.click()
             check_dlg(left, top, width, height)
-            pyautogui.moveTo(0, 0)
+            pyautogui.moveTo(left + width, top)
             x, y, w, h = left + width / 4, top + height / 4, width / 3 * 2, height / 4
             pyautogui.screenshot("./tmp/shot.png", region=(int(x), int(y), int(w), int(h)))
             print("获取成功")
+            pyautogui.hotkey('winleft', 'down')
         except Exception as e:
-            print(e)
+            print(f'line{e.__traceback__.tb_lineno} :::{e}')
     else:
         return False
     return True
@@ -59,7 +61,16 @@ def check_dlg(x, y, w, h):
             pyautogui.moveTo(*loc, duration=0.5)
             pyautogui.click()
     except Exception as e:
-        print(e)
+        print(f'line{e.__traceback__.tb_lineno} :::{e}')
+
+
+def go_remote(left, top, width, height):
+    try:
+        loc = pyautogui.locateCenterOnScreen("./tmp/con.png", region=(left, top, int(width / 4), int(height / 3)))
+        pyautogui.moveTo(*loc)
+        pyautogui.click()
+    except Exception as e:
+        print(f'line{e.__traceback__.tb_lineno} :::{e}')
 
 
 def png_format():
@@ -79,8 +90,12 @@ def save(byte):
 
 
 if __name__ == '__main__':
-    res = capture()
-    if not res:
-        print("获取失败")
-    img_byte = png_format()
-    save(img_byte)
+    with open('./data.log', 'a') as f:
+        res = capture()
+        now = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        f.write(now + '\t' + str(res) + '\n')
+        f.close()
+        if not res:
+            print("获取失败")
+        img_byte = png_format()
+        save(img_byte)

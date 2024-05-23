@@ -7,7 +7,7 @@ import pytesseract
 import redis
 import numpy as np
 
-redis_client = redis.StrictRedis(host='192.168.232.128', port=6379, db=0)
+redis_client = redis.StrictRedis(host='192.168.1.251', port=6379, db=0)
 
 
 def png_format(b):
@@ -20,7 +20,7 @@ def png_format(b):
         c, p = text.rsplit(" ", 1)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-        print(f'识别到验证码{c}')
+        print(f'scanner code : {c}')
         return c, p
     except Exception as e:
         print(f'line{e.__traceback__.tb_lineno} :::{e}')
@@ -45,7 +45,7 @@ def redis_format():
 
 
 if __name__ == '__main__':
-    pytesseract.pytesseract.tesseract_cmd = r'D:\Tesseract-OCR\tesseract.exe'
+    # pytesseract.pytesseract.tesseract_cmd = r'D:\Tesseract-OCR\tesseract.exe'
     while True:
         redis_format()
         time.sleep(3600)
