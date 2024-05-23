@@ -60,13 +60,14 @@ def check_dlg(x, y, w, h):
             print("检测到弹窗，尝试关闭")
             pyautogui.moveTo(*loc, duration=0.5)
             pyautogui.click()
+            time.sleep(1)
     except Exception as e:
         print(f'line{e.__traceback__.tb_lineno} :::{e}')
 
 
 def go_remote(left, top, width, height):
     try:
-        loc = pyautogui.locateCenterOnScreen("./tmp/con.png", region=(left, top, int(width / 4), int(height / 3)))
+        loc = pyautogui.locateCenterOnScreen("./tmp/connect.png", region=(left, top, int(width / 4), int(height / 3)))
         pyautogui.moveTo(*loc)
         pyautogui.click()
     except Exception as e:
