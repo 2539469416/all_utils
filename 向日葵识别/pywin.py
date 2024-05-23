@@ -18,7 +18,6 @@ def png_format(b):
         # 显示原始图像和灰度图像
         text = pytesseract.image_to_string(binary_image)
         c, p = text.rsplit(" ", 1)
-        cv2.waitKey(0)
         cv2.destroyAllWindows()
         print(f'scanner code : {c}')
         return c, p
@@ -47,5 +46,6 @@ def redis_format():
 if __name__ == '__main__':
     # pytesseract.pytesseract.tesseract_cmd = r'D:\Tesseract-OCR\tesseract.exe'
     while True:
+        print("Get code data")
         redis_format()
-        time.sleep(3600)
+        time.sleep(600)
