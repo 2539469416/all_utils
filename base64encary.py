@@ -1,6 +1,8 @@
 import sys
 import base64
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QPushButton, QLabel, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QPushButton, \
+    QLabel, QMessageBox
+
 
 class Base64Tool(QMainWindow):
     def __init__(self):
@@ -60,6 +62,7 @@ class Base64Tool(QMainWindow):
         clipboard = QApplication.clipboard()
         clipboard.setText(result)
         QMessageBox.information(self, "复制成功", "结果已复制到剪贴板！")
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
